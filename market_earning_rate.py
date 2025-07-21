@@ -123,12 +123,13 @@ class MarketEarningRatioValuator:
             elif strategy == "dividend_correction":
                 result['justification'] = "ROE稳定，但分红率低于50%。应用N系数进行修正。"
                 payout_ratio = data['dividend_payout_ratio']
-                if payout_ratio == 0:
-                    # 避免除以零，可以设置一个默认的较大N值或抛出异常
-                    raise ValueError("分红率为0，无法计算修正PR值。")
-                n_factor = 0.5 / payout_ratio
-                if n_factor > 2:
-                    n_factor = 2
+
+                n_factor = 2.0  # 默认使用最大修正系数
+                if payout_ratio and payout_ratio > 0:
+                    n_factor = min(2.0, 0.5 / payout_ratio)
+                    if n_factor < 0.5:
+                        n_factor = 0.5
+
                 basic_pr = data['pe'] / data['roe']
                 result['inputs'] = {'pe': data['pe'], 'roe': data['roe'], 'dividend_payout_ratio': payout_ratio}
                 result['pr_value'] = n_factor * basic_pr

@@ -82,7 +82,7 @@ class StockAnalyzer:
         return self.pro.daily_basic(
             ts_code=ts_code,
             trade_date=trade_date,
-            fields='ts_code,trade_date,pe,pb'
+            fields='ts_code,trade_date,pe,pb,total_mv'
         )
 
     def analyze_for_valuation(self, ts_code: str, trade_date: str) -> dict:
