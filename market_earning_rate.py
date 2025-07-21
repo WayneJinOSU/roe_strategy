@@ -127,8 +127,8 @@ class MarketEarningRatioValuator:
                 n_factor = 2.0  # 默认使用最大修正系数
                 if payout_ratio and payout_ratio > 0:
                     n_factor = min(2.0, 0.5 / payout_ratio)
-                    if n_factor < 0.5:
-                        n_factor = 0.5
+                    if n_factor < 1:
+                        n_factor = 1
 
                 basic_pr = data['pe'] / data['roe']
                 result['inputs'] = {'pe': data['pe'], 'roe': data['roe'], 'dividend_payout_ratio': payout_ratio}

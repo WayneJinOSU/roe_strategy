@@ -3,7 +3,7 @@ from market_earning_rate import marketEarningRatioValuator
 
 # 要分析的股票列表
 stocks_to_analyze = ['600926.SH']  # 示例：杭州联合银行
-trade_date = '20240722'  # 使用一个最近的交易日
+trade_date = '20250718'  # 使用一个最近的交易日
 
 evaluation_results = []
 
