@@ -13,17 +13,16 @@ try:
     print("-" * 35, "\n")
 
     # 2. 将分析结果传入估值器进行计算 (取消注释以运行)
-    # evaluator = MarketEarningRatioValuator()
-    # result = evaluator.evaluate(
-    #     latest_metrics=valuation_inputs['latest_metrics'],
-    #     roe_history=valuation_inputs['roe_history']
-    # )
-    #
-    # print("--- 估值器计算结果 ---")
-    # print(f"选用策略: {result['strategy']}")
-    # print(f"决策理由: {result['justification']}")
-    # print(f"计算所需输入: {result['inputs']}")
-    # print(f"市赚率 (PR) 结果: {result['pr_value']:.4f}")
-    # print("-" * 35)
+    result = marketEarningRatioValuator.evaluate(
+        latest_metrics=valuation_inputs['latest_metrics'],
+        roe_history=valuation_inputs['roe_history']
+    )
+
+    print("--- 估值器计算结果 ---")
+    print(f"选用策略: {result['strategy']}")
+    print(f"决策理由: {result['justification']}")
+    print(f"计算所需输入: {result['inputs']}")
+    print(f"市赚率 (PR) 结果: {result['pr_value']:.4f}")
+    print("-" * 35)
 except Exception as e:
     print(e)
