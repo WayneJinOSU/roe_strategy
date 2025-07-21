@@ -101,7 +101,6 @@ class StockAnalyzer:
 
         for period in report_dates:
             financial_core = self._get_financial_core(ts_code, period)
-            print(period, financial_core)
             if financial_core.empty:
                 continue
 
@@ -119,6 +118,13 @@ class StockAnalyzer:
         all_financials.sort(key=lambda x: x['end_date'], reverse=True)
         roe_history = [record['roe_waa'] for record in all_financials]
 
+        # 计算最近2-4年的平均股息支付率
+        dprs = [record['dpr'] for record in all_financials[1:4]]
+        if dprs:
+            avg_dpr = np.mean(dprs)
+        else:
+            avg_dpr = 0.0  # 如果没有足够的数据（少于2年），则默认为0
+
         # 获取最新的财务数据和估值指标
         latest_financials = all_financials[0]
         basic_indicator = self._get_basic_indicator(ts_code, trade_date)
@@ -129,7 +135,7 @@ class StockAnalyzer:
             'pe': basic_indicator['pe'].iloc[0],
             'pb': basic_indicator['pb'].iloc[0],
             'roa': latest_financials['roa_dp'],
-            'dividend_payout_ratio': latest_financials['dpr']
+            'dividend_payout_ratio': avg_dpr
         }
 
         return {
