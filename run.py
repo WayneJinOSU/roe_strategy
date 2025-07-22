@@ -6,6 +6,14 @@ stocks_to_analyze = ['600926.SH']  # 示例：杭州联合银行
 trade_date = '20250718'  # 使用一个最近的交易日
 
 evaluation_results = []
+def basic_filter(valuation_inputs):
+    if valuation_inputs:
+        if valuation_inputs['latest_metrics']['total_mv'] < 3000000:
+            return True
+        else:
+            return False
+    else:
+        return True
 
 for ts_code in stocks_to_analyze:
     try:
@@ -15,6 +23,9 @@ for ts_code in stocks_to_analyze:
             ts_code=ts_code,
             trade_date=trade_date
         )
+        if basic_filter(valuation_inputs):
+            continue
+
         print("最新财务指标:", valuation_inputs['latest_metrics'])
         print("历史ROE (5年):", valuation_inputs['roe_history'])
         print("-" * 35, "\n")

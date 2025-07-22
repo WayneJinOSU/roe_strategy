@@ -134,6 +134,7 @@ class StockAnalyzer:
         latest_metrics = {
             'pe': basic_indicator['pe'].iloc[0],
             'pb': basic_indicator['pb'].iloc[0],
+            'total_mv': basic_indicator['total_mv'].iloc[0],
             'roa': latest_financials['roa_dp'],
             'dividend_payout_ratio': avg_dpr
         }
