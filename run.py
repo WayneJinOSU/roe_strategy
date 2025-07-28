@@ -1,8 +1,10 @@
+import time
+
 import pandas as pd
 
 from financial_indicator_simple import analyzer
 from market_earning_rate import marketEarningRatioValuator
-
+import traceback
 # 要分析的股票列表
 
 
@@ -38,7 +40,7 @@ df = pro.stock_basic(**{
 for index, row in df.iterrows():
     ts_code = row['ts_code']
 
-trade_date = '20250718'  # 使用一个最近的交易日
+trade_date = '20250725'  # 使用一个最近的交易日
 
 def basic_filter(valuation_inputs):
     if valuation_inputs:
@@ -60,6 +62,7 @@ for index, row in df.iterrows():
             trade_date=trade_date
         )
         if basic_filter(valuation_inputs):
+            time.sleep(0.4)
             continue
 
         print("最新财务指标:", valuation_inputs['latest_metrics'])
@@ -75,6 +78,9 @@ for index, row in df.iterrows():
         # 3. 存储结果
         stock_result = {
             'ts_code': ts_code,
+            'name': row['name'],
+            'market':row['market'],
+            'total_mv':valuation_inputs['latest_metrics']['total_mv'],
             'inputs': str(result['inputs']),
             'pr_value': result['pr_value'],
             'strategy': result['strategy']
@@ -86,6 +92,7 @@ for index, row in df.iterrows():
 
     except Exception as e:
         print(f"处理 {ts_code} 时发生错误: {e}")
+        traceback.print_exc()
         # Optionally, store error information
         evaluation_results.append({
             'ts_code': ts_code,
