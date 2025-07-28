@@ -1,11 +1,45 @@
+import pandas as pd
+
 from financial_indicator_simple import analyzer
 from market_earning_rate import marketEarningRatioValuator
 
 # 要分析的股票列表
-stocks_to_analyze = ['600926.SH']  # 示例：杭州联合银行
+
+
+# 导入tushare
+import tushare as ts
+
+# 初始化pro接口
+pro = ts.pro_api('53ee1462078b0eccca09bc5d0c92e50b13524272e6ef9ea49db0a876')
+
+# 拉取数据
+df = pro.stock_basic(**{
+    "ts_code": "",
+    "name": "",
+    "exchange": "",
+    "market": "",
+    "is_hs": "",
+    "list_status": "",
+    "limit": "",
+    "offset": ""
+}, fields=[
+    "ts_code",
+    "symbol",
+    "name",
+    "area",
+    "industry",
+    "cnspell",
+    "market",
+    "list_date",
+    "act_name",
+    "act_ent_type"
+])
+
+for index, row in df.iterrows():
+    ts_code = row['ts_code']
+
 trade_date = '20250718'  # 使用一个最近的交易日
 
-evaluation_results = []
 def basic_filter(valuation_inputs):
     if valuation_inputs:
         if valuation_inputs['latest_metrics']['total_mv'] < 3000000:
@@ -15,7 +49,9 @@ def basic_filter(valuation_inputs):
     else:
         return True
 
-for ts_code in stocks_to_analyze:
+evaluation_results = []
+for index, row in df.iterrows():
+    ts_code = row['ts_code']
     try:
         # 1. 从Tushare获取数据并进行分析
         print(f"--- 正在分析股票: {ts_code} ---")
@@ -39,11 +75,14 @@ for ts_code in stocks_to_analyze:
         # 3. 存储结果
         stock_result = {
             'ts_code': ts_code,
-            'inputs': result['inputs'],
+            'inputs': str(result['inputs']),
             'pr_value': result['pr_value'],
             'strategy': result['strategy']
         }
         evaluation_results.append(stock_result)
+
+        df = pd.DataFrame(evaluation_results)
+        df.to_csv('low_vaule_stock.csv', index=False)
 
     except Exception as e:
         print(f"处理 {ts_code} 时发生错误: {e}")
