@@ -40,7 +40,7 @@ df = pro.stock_basic(**{
 for index, row in df.iterrows():
     ts_code = row['ts_code']
 
-trade_date = '20250725'  # 使用一个最近的交易日
+trade_date = '20250821'  # 使用一个最近的交易日
 
 def basic_filter(valuation_inputs):
     if valuation_inputs:
@@ -88,7 +88,7 @@ for index, row in df.iterrows():
         evaluation_results.append(stock_result)
 
         df = pd.DataFrame(evaluation_results)
-        df.to_csv('low_vaule_stock.csv', index=False)
+        df.to_csv(f'{trade_date}_low_vaule_stock.csv', index=False)
 
     except Exception as e:
         print(f"处理 {ts_code} 时发生错误: {e}")

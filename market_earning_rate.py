@@ -46,7 +46,7 @@ class MarketEarningRatioValuator:
         # }
     """
 
-    def __init__(self, roe_stability_threshold: float = 0.2):
+    def __init__(self, roe_stability_threshold: float = 0.3):
         """
         初始化估值器。
         :param roe_stability_threshold: ROE稳定性的变异系数阈值，低于此值视为稳定。

@@ -2,6 +2,8 @@ import tushare as ts
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import time
+import random
 
 # from .market_earning_ratio_valuator import MarketEarningRatioValuator
 
@@ -17,12 +19,46 @@ class StockAnalyzer:
             raise ValueError("Tushare Pro API token is required.")
         self.pro = ts.pro_api(token)
 
+    def _query_with_retry(self, query_callable, kwargs, max_retries: int = 3, backoff_base: float = 0.5):
+        """
+        对 Tushare 查询增加重试与指数退避，并在成功后小睡 0.2s 以限流。
+        """
+        last_exc = None
+        for attempt in range(max_retries):
+            try:
+                result = query_callable(**kwargs)
+                # 成功后做轻微等待，降低速率（并发下尤为重要）
+                time.sleep(0.2)
+                return result
+            except Exception as exc:  # noqa: BLE001 - 需要捕获第三方库抛出的通用异常
+                last_exc = exc
+                message = str(exc)
+                is_rate_limit = (
+                    '每分钟最多访问' in message
+                    or 'frequency' in message.lower()
+                    or 'too many' in message.lower()
+                    or 'rate' in message.lower()
+                )
+                # 对偶发错误统一重试，频控错误采用退避
+                if attempt < max_retries - 1:
+                    sleep_secs = backoff_base * (2 ** attempt) + random.uniform(0, 0.2)
+                    # 若明显是频控错误，适当增加等待
+                    if is_rate_limit:
+                        sleep_secs += 0.5
+                    time.sleep(sleep_secs)
+                    continue
+                # 重试用尽后抛出
+                raise last_exc
+
     def _get_financial_core(self, ts_code: str, period_date: str) -> pd.DataFrame:
         """获取指定报告期的财务核心指标，并筛选掉无效数据。"""
-        df = self.pro.fina_indicator(
-            ts_code=ts_code,
-            period=period_date,
-            fields=['ts_code', 'ann_date', 'end_date', 'roe_waa', 'roa_dp', 'eps']
+        df = self._query_with_retry(
+            self.pro.fina_indicator,
+            {
+                'ts_code': ts_code,
+                'period': period_date,
+                'fields': ['ts_code', 'ann_date', 'end_date', 'roe_waa', 'roa_dp', 'eps']
+            }
         )
         if not df.empty:
             # 规则 1: 筛选掉关键指标 'roe_waa' 为空的行
@@ -38,10 +74,13 @@ class StockAnalyzer:
 
     def _get_dividend(self, ts_code: str, end_date: str) -> pd.DataFrame:
         """获取指定报告期末的分红数据"""
-        dividend_df = self.pro.dividend(
-            ts_code=ts_code,
-            end_date=end_date,
-            fields=["ts_code", "end_date", "div_proc", "cash_div_tax"]
+        dividend_df = self._query_with_retry(
+            self.pro.dividend,
+            {
+                'ts_code': ts_code,
+                'end_date': end_date,
+                'fields': ["ts_code", "end_date", "div_proc", "cash_div_tax"]
+            }
         )
         # 筛选已通过股东大会决议的分红方案
         return dividend_df[dividend_df['div_proc'] == '股东大会通过']
@@ -79,10 +118,13 @@ class StockAnalyzer:
 
     def _get_basic_indicator(self, ts_code: str, trade_date: str) -> pd.DataFrame:
         """获取指定交易日的基本指标（PE、PB等）"""
-        return self.pro.daily_basic(
-            ts_code=ts_code,
-            trade_date=trade_date,
-            fields='ts_code,trade_date,pe,pb,total_mv'
+        return self._query_with_retry(
+            self.pro.daily_basic,
+            {
+                'ts_code': ts_code,
+                'trade_date': trade_date,
+                'fields': 'ts_code,trade_date,pe,pb,total_mv'
+            }
         )
 
     def analyze_for_valuation(self, ts_code: str, trade_date: str) -> dict:
