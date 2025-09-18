@@ -28,7 +28,7 @@ class StockAnalyzer:
             try:
                 result = query_callable(**kwargs)
                 # 成功后做轻微等待，降低速率（并发下尤为重要）
-                time.sleep(0.2)
+                time.sleep(1)
                 return result
             except Exception as exc:  # noqa: BLE001 - 需要捕获第三方库抛出的通用异常
                 last_exc = exc

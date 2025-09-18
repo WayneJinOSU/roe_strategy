@@ -40,7 +40,7 @@ def load_stock_list():
 
 
 # 使用最近交易日（与 run.py 保持一致以便复用输出文件）
-trade_date = '20250821'
+trade_date = '20250915'
 
 
 def basic_filter(valuation_inputs):
@@ -54,11 +54,25 @@ def basic_filter(valuation_inputs):
 
 
 def process_stock(ts_code, name, market):
+    def retry_with_backoff(func, kwargs, max_retries=3, backoff_base=0.5):
+        last_exc = None
+        for attempt in range(max_retries):
+            try:
+                return func(**kwargs)
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                if attempt < max_retries - 1:
+                    time.sleep(backoff_base * (2 ** attempt))
+                else:
+                    raise last_exc
+
     try:
         print(f"--- 正在分析股票: {ts_code} ---")
-        valuation_inputs = analyzer.analyze_for_valuation(
-            ts_code=ts_code,
-            trade_date=trade_date
+        valuation_inputs = retry_with_backoff(
+            analyzer.analyze_for_valuation,
+            {"ts_code": ts_code, "trade_date": trade_date},
+            max_retries=3,
+            backoff_base=0.5,
         )
 
         if basic_filter(valuation_inputs):
@@ -68,9 +82,14 @@ def process_stock(ts_code, name, market):
         print("历史ROE (5年):", valuation_inputs['roe_history'])
         print("-" * 35, "\n")
 
-        result = marketEarningRatioValuator.evaluate(
-            latest_metrics=valuation_inputs['latest_metrics'],
-            roe_history=valuation_inputs['roe_history']
+        result = retry_with_backoff(
+            marketEarningRatioValuator.evaluate,
+            {
+                "latest_metrics": valuation_inputs['latest_metrics'],
+                "roe_history": valuation_inputs['roe_history'],
+            },
+            max_retries=2,
+            backoff_base=0.3,
         )
 
         return {
@@ -84,15 +103,15 @@ def process_stock(ts_code, name, market):
         }
 
     except Exception as e:
-        print(f"处理 {ts_code} 时发生错误: {e}")
-        traceback.print_exc()
+        # 重试用尽后再输出一次错误
+        print(f"处理 {ts_code} 最终失败: {e}")
         return {
             'ts_code': ts_code,
             'error': str(e)
         }
 
 
-def main(max_workers=4):
+def main(max_workers=2):
     stock_df = load_stock_list()
 
     evaluation_results = []
