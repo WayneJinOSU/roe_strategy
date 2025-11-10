@@ -4,6 +4,6 @@ import pandas as pd
 pd.set_option('display.max_columns', 20)
 pro = ts.pro_api('53ee1462078b0eccca09bc5d0c92e50b13524272e6ef9ea49db0a876')
 
-df = pd.read_csv('/Users/a/PycharmProjects/roe_strategy/result/20250915_low_vaule_stock.csv')
+df = pd.read_csv('../result/20251017_low_vaule_stock.csv')
 temp = df[df['pr_value']<0.4]
 print(temp)
