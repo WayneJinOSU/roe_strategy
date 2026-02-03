@@ -60,7 +60,6 @@ graph TD
     C --> G[股息率DY>无风险利率？]
     E & F & G --> H[综合决策]
 ```
-![deepseek_mermaid_20250727_a5453b.png](image/deepseek_mermaid_20250727_a5453b.png)
 #### **2. 关键参数备注**
 | **参数**       | **逻辑作用**                  | **边界条件**                  |
 |----------------|-----------------------------|-----------------------------|
@@ -90,5 +89,41 @@ graph TD
 >     F -->|否| H[检查ROA→衍生PR]
 >     D & E & G & H --> I[结合五大参数决策]
 > ```
-![deepseek_mermaid_20250727_e2cc2c.png](image/deepseek_mermaid_20250727_e2cc2c.png)
-此框架通过三层逻辑（基础公式→失真修正→动态校准）实现巴菲特的“模糊正确”，同时明确标注了每个变体的适用前提和失效边界，避免机械套用。
+---
+
+### **五、如何运行**
+
+#### **1. 安装依赖**
+项目依赖 `tushare`, `pandas` 和 `numpy`。请运行以下命令进行安装：
+```bash
+pip install -r requirements.txt
+```
+
+#### **2. 配置 Tushare Token**
+脚本中使用的是硬编码的 Token。如果需要使用自己的 Token，请修改以下文件中的 `pro_api` 调用：
+- `A/run.py`
+- `hk/run.py`
+- `find_low_vaule.py`
+
+#### **3. 执行分析**
+- **分析 A 股股票**：
+  进入 `A` 目录并运行：
+  ```bash
+  python A/run_concurrent.py
+  ```
+- **分析 港股 股票**：
+  进入 `hk` 目录并运行：
+  ```bash
+  python hk/run.py
+  ```
+
+#### **4. 查看结果**
+分析完成后，会在相应目录下生成 `YYYYMMDD_low_vaule_stock.csv` 文件。
+
+你可以使用 `find_low_vaule.py` 来进一步筛选 PR 值小于 0.5 的低估股票：
+```bash
+python find_low_vaule.py
+```
+*(注意：请在脚本中修改数据文件的路径为实际生成的路径)*
+
+---

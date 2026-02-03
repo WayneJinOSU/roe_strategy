@@ -1,5 +1,6 @@
 import time
 import traceback
+import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
@@ -39,10 +40,6 @@ def load_stock_list():
     return stock_df
 
 
-# 使用最近交易日（与 run.py 保持一致以便复用输出文件）
-trade_date = '20260128'
-
-
 def basic_filter(valuation_inputs):
     if valuation_inputs:
         if valuation_inputs['latest_metrics']['total_mv'] < 1500000:
@@ -53,7 +50,7 @@ def basic_filter(valuation_inputs):
         return True
 
 
-def process_stock(ts_code, name, market):
+def process_stock(ts_code, name, market, trade_date):
     def retry_with_backoff(func, kwargs, max_retries=3, backoff_base=0.5):
         last_exc = None
         for attempt in range(max_retries):
@@ -111,7 +108,7 @@ def process_stock(ts_code, name, market):
         }
 
 
-def main(max_workers=4):
+def main(trade_date, max_workers=4):
     stock_df = load_stock_list()
 
     evaluation_results = []
@@ -122,13 +119,16 @@ def main(max_workers=4):
             ts_code = row['ts_code']
             name = row['name']
             market = row['market']
-            tasks.append(executor.submit(process_stock, ts_code, name, market))
+            tasks.append(executor.submit(process_stock, ts_code, name, market, trade_date))
 
         for future in as_completed(tasks):
-            res = future.result()
-            if res is None:
-                continue
-            evaluation_results.append(res)
+            try:
+                res = future.result()
+                if res is None:
+                    continue
+                evaluation_results.append(res)
+            except Exception as e:
+                print(f"线程执行任务异常: {e}")
 
     if evaluation_results:
         result_df = pd.DataFrame(evaluation_results)
@@ -136,7 +136,6 @@ def main(max_workers=4):
 
     print("\n--- 所有股票估值完成 ---")
     for res in evaluation_results:
-        print(res)
         if 'error' in res:
             print(f"股票: {res['ts_code']}, 错误: {res['error']}")
         else:
@@ -145,7 +144,14 @@ def main(max_workers=4):
 
 
 if __name__ == "__main__":
-    # 可按需调整并发度
-    main(max_workers=4)
+    parser = argparse.ArgumentParser(description='A股股票估值分析(并发版)')
+    parser.add_argument('--date', type=str, default=time.strftime('%Y%m%d'),
+                        help='分析交易日期 (格式: YYYYMMDD, 默认当天)')
+    parser.add_argument('--workers', type=int, default=4,
+                        help='并发线程数 (默认: 4)')
+    
+    args = parser.parse_args()
+    
+    main(trade_date=args.date, max_workers=args.workers)
 
 
