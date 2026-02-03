@@ -94,7 +94,7 @@ class MarketEarningRatioValuator:
         :param roe_history: 包含过去5年ROE历史数据的列表，需按时间倒序排列（最近的在前）。
         :return: 一个包含所用策略、理由、计算结果和输入参数的字典。
         """
-        if not isinstance(roe_history, list) or len(roe_history) < 5:
+        if not isinstance(roe_history, list) or len(roe_history) < 4:
             raise ValueError("roe_history 需要一个包含至少5年ROE历史数据的列表。")
         if not isinstance(latest_metrics, dict):
             raise ValueError("latest_metrics 需要一个包含最新财务指标的字典。")

@@ -40,12 +40,12 @@ def load_stock_list():
 
 
 # 使用最近交易日（与 run.py 保持一致以便复用输出文件）
-trade_date = '20251017'
+trade_date = '20260128'
 
 
 def basic_filter(valuation_inputs):
     if valuation_inputs:
-        if valuation_inputs['latest_metrics']['total_mv'] < 500000:
+        if valuation_inputs['latest_metrics']['total_mv'] < 1500000:
             return True
         else:
             return False
@@ -79,7 +79,7 @@ def process_stock(ts_code, name, market):
             return None
 
         print("最新财务指标:", valuation_inputs['latest_metrics'])
-        print("历史ROE (5年):", valuation_inputs['roe_history'])
+        print("历史ROE (4年):", valuation_inputs['roe_history'])
         print("-" * 35, "\n")
 
         result = retry_with_backoff(
@@ -111,7 +111,7 @@ def process_stock(ts_code, name, market):
         }
 
 
-def main(max_workers=2):
+def main(max_workers=4):
     stock_df = load_stock_list()
 
     evaluation_results = []
