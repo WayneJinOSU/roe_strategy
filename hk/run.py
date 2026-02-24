@@ -12,7 +12,7 @@ import traceback
 import tushare as ts
 
 # 初始化pro接口
-pro = ts.pro_api('4285a180dcd3ddecb6132c49acad9c94cd451bf6c2c2eef824f36203')
+pro = ts.pro_api('')
 
 # 拉取数据
 df = pro.hk_basic()
