@@ -10,7 +10,7 @@ from market_earning_rate import marketEarningRatioValuator
 
 
 # 初始化pro接口（与 run.py 相同的 Token）
-pro = ts.pro_api('53ee1462078b0eccca09bc5d0c92e50b13524272e6ef9ea49db0a876')
+pro = ts.pro_api('')
 
 
 def load_stock_list():
