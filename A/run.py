@@ -37,10 +37,23 @@ df = pro.stock_basic(**{
     "act_ent_type"
 ])
 
+
+def is_excluded_stock(row):
+    ts_code = str(row.get('ts_code', ''))
+    market = str(row.get('market', ''))
+    return (
+        ts_code.endswith('.BJ')
+        or ts_code.startswith(('688', '689'))
+        or market == '科创板'
+    )
+
+
+df = df[~df.apply(is_excluded_stock, axis=1)]
+
 for index, row in df.iterrows():
     ts_code = row['ts_code']
 
-trade_date = '20250821'  # 使用一个最近的交易日
+trade_date = '20260407'  # 使用一个最近的交易日
 
 def basic_filter(valuation_inputs):
     if valuation_inputs:

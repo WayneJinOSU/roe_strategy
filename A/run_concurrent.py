@@ -37,7 +37,18 @@ def load_stock_list():
         "act_name",
         "act_ent_type"
     ])
+    stock_df = stock_df[~stock_df.apply(is_excluded_stock, axis=1)]
     return stock_df
+
+
+def is_excluded_stock(row):
+    ts_code = str(row.get('ts_code', ''))
+    market = str(row.get('market', ''))
+    return (
+        ts_code.endswith('.BJ')
+        or ts_code.startswith(('688', '689'))
+        or market == '科创板'
+    )
 
 
 def basic_filter(valuation_inputs):
@@ -145,7 +156,7 @@ def main(trade_date, max_workers=4):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A股股票估值分析(并发版)')
-    parser.add_argument('--date', type=str, default=time.strftime('%Y%m%d'),
+    parser.add_argument('--date', type=str, default='20260605',
                         help='分析交易日期 (格式: YYYYMMDD, 默认当天)')
     parser.add_argument('--workers', type=int, default=4,
                         help='并发线程数 (默认: 4)')
@@ -153,5 +164,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     main(trade_date=args.date, max_workers=args.workers)
-
 
